@@ -1,0 +1,60 @@
+---
+
+- name: installing the require
+  hosts: db_server
+  become: yes
+  gather_facts: false
+  tasks:
+    - name: installing the requirs 
+      ansible.builtin.yum:
+        name:
+          - epel-release
+          - zip
+          - git
+          - unzip
+          - mariadb-server
+        state: present
+    - name: started mariadb 
+      ansible.builtin.systemd:
+        name: mariadb
+        state: started
+        enabled: true
+    - name: check the repo is downloaded or not
+      ansible.builtin.stat:
+        path: /tmp/vprofile/ansible
+      register: check_file_exsit
+    - name: clone the repo from git
+      ansible.builtin.git:
+        repo: https://github.com/hkhcoder/vprofile-project.git
+        dest: /tmp/vprofile
+        single_branch: yes
+        clone: yes
+        remote: yes
+      when: not check_file_exsit.stat.exists
+    - name: cp the db.sh to /tmp/
+      ansible.builtin.copy:
+        src: db.sh
+        dest: /tmp/db.sh
+        mode: "777"
+    
+    - name: execute the many command
+      ansible.builtin.expect:
+        command: sh /tmp/db.sh
+        responses:
+          "Enter password: ": "ahmed"
+
+    - name: restart the mariadb
+      ansible.builtin.systemd:
+        name: mariadb
+        state: reloaded
+    - name: restart the firwall
+      ansible.builtin.systemd:
+        name: firewalld
+        state: started
+        enabled: true
+   
+
+    
+
+
+      

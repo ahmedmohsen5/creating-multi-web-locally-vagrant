@@ -1,0 +1,5 @@
+[db_server]
+192.168.56.8
+
+[db_server:vars]
+ansible_user=vagrant
