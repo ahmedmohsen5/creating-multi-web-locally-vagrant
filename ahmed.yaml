@@ -38,20 +38,34 @@
         mode: "777"
     
     - name: execute the many command
-      ansible.builtin.expect:
-        command: sh /tmp/db.sh
-        responses:
-          "Enter password: ": "ahmed"
+      ansible.builtin.command: /tmp/db.sh
+      args:
+        stdin: "ahmed"
 
     - name: restart the mariadb
       ansible.builtin.systemd:
         name: mariadb
-        state: reloaded
+        state: restarted
     - name: restart the firwall
       ansible.builtin.systemd:
         name: firewalld
         state: started
         enabled: true
+    - name: open the port in firwall
+      ansible.builtin.firewalld:
+        port: 3306/tcp
+        permanent: yes
+        state: enabled
+        zone: public
+    - name: restart the firewall
+      ansible.builtin.systemd:
+        name: firewalld
+        state: reloaded
+    - name: restart the mariadb
+      ansible.builtin.systemd:
+        name: mariadb
+        state: restarted
+
    
 
     
